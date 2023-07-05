@@ -61,6 +61,7 @@ const timer__startTimer = () => {
   timer.remSeconds = timer.restartFlag ? timer.totalSeconds : timer.remSeconds;
   let timeout = timer.remSeconds;
   timer.restartFlag = false;
+  timer.runFlag = true;
 
   timer__interval = setInterval(() => {
     timer.remSeconds -= 1;
@@ -72,6 +73,7 @@ const timer__startTimer = () => {
     timer__setTime(0);
     timer__alert.play();
   }, timeout * 1000);
+
   timer__startBtn.disabled = true;
   timer__stopBtn.disabled = false;
 };
@@ -82,6 +84,8 @@ const timer__initTimer = () => {
   clearTimeout(timer__timeout);
   timer__startBtn.disabled = true;
   timer__stopBtn.disabled = true;
+  timer.runFlag = false;
+
   // timer.restartFlag = true;
 };
 
@@ -90,6 +94,7 @@ const timer__stopTimer = () => {
   timer__initTimer();
   timer__setTime(timer.remSeconds);
   timer.restartFlag = false;
+  timer.runFlag = false;
   timer__startBtn.disabled = false;
   timer__stopBtn.disabled = true;
 };
@@ -100,6 +105,7 @@ const timer__resetTimer = () => {
   timer__initTimer();
   timer__setTime(timer.totalSeconds);
   timer.restartFlag = true;
+  timer.runFlag = false;
   timer__alert.pause();
   timer__startBtn.disabled = false;
   timer__stopBtn.disabled = true;
@@ -150,15 +156,20 @@ const timer__storeTimer = () => {
 const timer__reloadTimer = () => {
   const localTimer = JSON.parse(localStorage.getItem("timer"));
   Object.assign(timer, localTimer);
+  if (timer.runFlag) {
+    timer__startTimer();
+    timer__startBtn.disabled = false;
+    timer__stopBtn.disabled = true;
+  } else {
+    console.log("faaa");
+    timer__startBtn.disabled = true;
+    timer__stopBtn.disabled = false;
+  }
 };
 
 //initalization
 (function init() {
   timer__reloadTimer();
   timer__setTitle(timer.title);
-  if (timer.runFlag) {
-    timer__startBtn.disabled = false;
-    timer__stopBtn.disabled = true;
-  }
   timer__setTime(timer.remSeconds);
 })();
