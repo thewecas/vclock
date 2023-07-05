@@ -39,6 +39,7 @@ const timer__startTimer = () => {
   timer__remainingSeconds = restartFlag
     ? timer.totalSeconds
     : timer__remainingSeconds;
+  let timeout = timer__remainingSeconds;
   timer__setAction(false);
 
   timer__interval = setInterval(() => {
@@ -46,38 +47,42 @@ const timer__startTimer = () => {
     timer__setTime(timer__remainingSeconds);
   }, 1000);
 
-  timer__timeout = setTimeout(timer__stopTimer, timer.totalSeconds * 1000);
+  timer__timeout = setTimeout(timer__initTimer, timeout * 1000);
+};
+
+const timer__initTimer = () => {
+  clearInterval(timer__interval);
+  clearTimeout(timer__timeout);
+  timer__setAction(true);
+  restartFlag = true;
+  timer__setTime(0);
+  timer__actionBtn.disabled = true;
 };
 
 //stop timer
 const timer__stopTimer = () => {
-  clearInterval(timer__interval);
-  clearTimeout(timer__timeout);
+  timer__initTimer();
   timer__setTime(timer__remainingSeconds);
   restartFlag = false;
-  timer__setAction(true);
 };
 
 //reset timer
 const timer__resetTimer = () => {
-  clearInterval(timer__interval);
-  clearTimeout(timer__timeout);
-  timer__setTime();
+  timer__initTimer();
+  timer__setTime(timer.totalSeconds);
   restartFlag = true;
-  timer__setAction(true);
+  timer__actionBtn.disabled = false;
 };
 timer__resetBtn.addEventListener("click", timer__resetTimer);
 
 //set title
-const timer__setTitle = () => {
-  timer__displayTitle.innerText = timer.title;
+const timer__setTitle = (title) => {
+  timer__displayTitle.innerText = title;
 };
 
 //set time
 const timer__setTime = (seconds) => {
-  timer__clock.innerText = timer__formatOutput(
-    seconds ? seconds : timer.totalSeconds
-  );
+  timer__clock.innerText = timer__formatOutput(seconds);
 };
 
 //set Action
@@ -119,9 +124,10 @@ const timer__getFormInput = (event) => {
 
   //display & start timer
   timer__resetTimer();
-  timer__setTitle();
-  timer__setTime();
+  timer__setTitle(timer.title);
+  timer__setTime(timer.totalSeconds);
   timer__startTimer();
+  timer__actionBtn.disabled = false;
 
   //close dialog
   timer__closeDialog();
@@ -143,7 +149,8 @@ const timer__reloadTimer = () => {
 //initalization
 (function init() {
   timer__reloadTimer();
-  timer__setTitle();
-  timer__setTime();
+  timer__remainingSeconds = timer.totalSeconds;
+  timer__setTitle(". . .");
+  timer__setTime(timer.totalSeconds);
   timer__setAction(true);
 })();
