@@ -1,12 +1,19 @@
 //timer object
-const timer = { totalSeconds: 0, title: "" };
+const timer = {
+  title: "",
+  totalSeconds: 0,
+  remSeconds: 0,
+  restartFlag: false,
+  runFlag: false,
+};
 
 //display timer element
 const timer__displayTitle = document.querySelector("#timer__displayTitle");
 const timer__clock = document.querySelector("#timer__clock");
 
 //buttons elememt
-const timer__actionBtn = document.querySelector("#timer__actionBtn");
+const timer__startBtn = document.querySelector("#timer__startBtn");
+const timer__stopBtn = document.querySelector("#timer__stopBtn");
 const timer__resetBtn = document.querySelector("#timer__resetBtn");
 const timer__editTimerBtn = document.querySelector("#timer__editTimerBtn");
 const timer__dialogCloseBtn = document.querySelector("#timer__dialogCloseBtn");
@@ -36,56 +43,6 @@ const timer__formatOutput = (totalSeconds) => {
   return `${formattedHH}:${formattedMM}:${formattedSS}`;
 };
 
-//start the timer
-let timer__interval;
-let timer__timeout;
-let timer__remainingSeconds;
-let restartFlag = true;
-const timer__startTimer = () => {
-  timer__remainingSeconds = restartFlag
-    ? timer.totalSeconds
-    : timer__remainingSeconds;
-  let timeout = timer__remainingSeconds;
-  timer__setAction(false);
-
-  timer__interval = setInterval(() => {
-    timer__remainingSeconds -= 1;
-    timer__setTime(timer__remainingSeconds);
-  }, 1000);
-
-  timer__timeout = setTimeout(() => {
-    timer__initTimer();
-    restartFlag = true;
-    timer__setTime(0);
-    timer__actionBtn.disabled = true;
-    timer__alert.play();
-  }, timeout * 1000);
-};
-
-const timer__initTimer = () => {
-  clearInterval(timer__interval);
-  clearTimeout(timer__timeout);
-  timer__setAction(true);
-};
-
-//stop timer
-const timer__stopTimer = () => {
-  timer__initTimer();
-  timer__setTime(timer__remainingSeconds);
-  restartFlag = false;
-};
-
-//reset timer
-const timer__resetTimer = () => {
-  timer__initTimer();
-  timer__setTime(timer.totalSeconds);
-  restartFlag = true;
-  timer__alert.pause();
-
-  timer__actionBtn.disabled = false;
-};
-timer__resetBtn.addEventListener("click", timer__resetTimer);
-
 //set title
 const timer__setTitle = (title) => {
   timer__displayTitle.innerText = title ? title : "---";
@@ -94,19 +51,60 @@ const timer__setTitle = (title) => {
 //set time
 const timer__setTime = (seconds) => {
   timer__clock.innerText = timer__formatOutput(seconds);
+  timer__storeTimer();
 };
 
-//set Action
-const timer__setAction = (action) => {
-  timer__actionBtn.innerText = action ? "Start" : "Stop";
+//start the timer
+let timer__interval;
+let timer__timeout;
+const timer__startTimer = () => {
+  timer.remSeconds = timer.restartFlag ? timer.totalSeconds : timer.remSeconds;
+  let timeout = timer.remSeconds;
+  timer.restartFlag = false;
+
+  timer__interval = setInterval(() => {
+    timer.remSeconds -= 1;
+    timer__setTime(timer.remSeconds);
+  }, 1000);
+
+  timer__timeout = setTimeout(() => {
+    timer__initTimer();
+    timer__setTime(0);
+    timer__alert.play();
+  }, timeout * 1000);
+  timer__startBtn.disabled = true;
+  timer__stopBtn.disabled = false;
+};
+timer__startBtn.addEventListener("click", timer__startTimer);
+
+const timer__initTimer = () => {
+  clearInterval(timer__interval);
+  clearTimeout(timer__timeout);
+  timer__startBtn.disabled = true;
+  timer__stopBtn.disabled = true;
+  // timer.restartFlag = true;
 };
 
-//perform action : start or stop the timer
-const timer__performAction = () => {
-  if (timer__actionBtn.innerText == "Stop") timer__stopTimer();
-  else timer__startTimer();
+//stop timer
+const timer__stopTimer = () => {
+  timer__initTimer();
+  timer__setTime(timer.remSeconds);
+  timer.restartFlag = false;
+  timer__startBtn.disabled = false;
+  timer__stopBtn.disabled = true;
 };
-timer__actionBtn.addEventListener("click", timer__performAction);
+timer__stopBtn.addEventListener("click", timer__stopTimer);
+
+//reset timer
+const timer__resetTimer = () => {
+  timer__initTimer();
+  timer__setTime(timer.totalSeconds);
+  timer.restartFlag = true;
+  timer__alert.pause();
+  timer__startBtn.disabled = false;
+  timer__stopBtn.disabled = true;
+};
+timer__resetBtn.addEventListener("click", timer__resetTimer);
 
 //open the dialog
 const timer__openDialog = () => timer__dialog.showModal();
@@ -130,6 +128,7 @@ const timer__getFormInput = (event) => {
   //store in a local vaiable
   timer.totalSeconds = totalSeconds;
   timer.title = timer__inputTitle.value;
+  timer.remSeconds = totalSeconds;
   //store the timer
   timer__storeTimer();
 
@@ -138,7 +137,6 @@ const timer__getFormInput = (event) => {
   timer__setTitle(timer.title);
   timer__setTime(timer.totalSeconds);
   timer__startTimer();
-  timer__actionBtn.disabled = false;
 
   //close dialog
   timer__closeDialog();
@@ -157,8 +155,10 @@ const timer__reloadTimer = () => {
 //initalization
 (function init() {
   timer__reloadTimer();
-  timer__remainingSeconds = timer.totalSeconds;
   timer__setTitle(timer.title);
-  timer__setTime(timer.totalSeconds);
-  timer__setAction(true);
+  if (timer.runFlag) {
+    timer__startBtn.disabled = false;
+    timer__stopBtn.disabled = true;
+  }
+  timer__setTime(timer.remSeconds);
 })();
