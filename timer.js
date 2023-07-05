@@ -1,3 +1,6 @@
+//timer object
+const timer = { totalSeconds: 0, title: "" };
+
 //display timer element
 const timer__displayTitle = document.querySelector("#timer__displayTitle");
 const timer__clock = document.querySelector("#timer__clock");
@@ -85,7 +88,7 @@ timer__resetBtn.addEventListener("click", timer__resetTimer);
 
 //set title
 const timer__setTitle = (title) => {
-  timer__displayTitle.innerText = title;
+  timer__displayTitle.innerText = title ? title : "---";
 };
 
 //set time
@@ -141,9 +144,6 @@ const timer__getFormInput = (event) => {
   timer__closeDialog();
 };
 
-//store for future use
-const timer = { totalSeconds: 0, title: "" };
-
 const timer__storeTimer = () => {
   localStorage.setItem("timer", JSON.stringify(timer));
 };
@@ -158,7 +158,7 @@ const timer__reloadTimer = () => {
 (function init() {
   timer__reloadTimer();
   timer__remainingSeconds = timer.totalSeconds;
-  timer__setTitle(". . .");
+  timer__setTitle(timer.title);
   timer__setTime(timer.totalSeconds);
   timer__setAction(true);
 })();
