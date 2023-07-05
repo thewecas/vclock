@@ -18,6 +18,9 @@ const timer__inputMM = document.querySelector("#timer__inputMM");
 const timer__inputSS = document.querySelector("#timer__inputSS");
 const timer__inputTitle = document.querySelector("#timer__inputTitle");
 
+//alert audio
+const timer__alert = document.querySelector("#timer__alert");
+
 //format the output
 const timer__formatOutput = (totalSeconds) => {
   const HH = Math.floor(totalSeconds / 3600);
@@ -47,16 +50,19 @@ const timer__startTimer = () => {
     timer__setTime(timer__remainingSeconds);
   }, 1000);
 
-  timer__timeout = setTimeout(timer__initTimer, timeout * 1000);
+  timer__timeout = setTimeout(() => {
+    timer__initTimer();
+    restartFlag = true;
+    timer__setTime(0);
+    timer__actionBtn.disabled = true;
+    timer__alert.play();
+  }, timeout * 1000);
 };
 
 const timer__initTimer = () => {
   clearInterval(timer__interval);
   clearTimeout(timer__timeout);
   timer__setAction(true);
-  restartFlag = true;
-  timer__setTime(0);
-  timer__actionBtn.disabled = true;
 };
 
 //stop timer
@@ -71,6 +77,8 @@ const timer__resetTimer = () => {
   timer__initTimer();
   timer__setTime(timer.totalSeconds);
   restartFlag = true;
+  timer__alert.pause();
+
   timer__actionBtn.disabled = false;
 };
 timer__resetBtn.addEventListener("click", timer__resetTimer);
