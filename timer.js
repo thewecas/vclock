@@ -3,7 +3,6 @@ const timer = {
   title: "",
   totalSeconds: 0,
   remSeconds: 0,
-  restartFlag: false,
   runFlag: false,
 };
 
@@ -58,57 +57,60 @@ const timer__setTime = (seconds) => {
 let timer__interval;
 let timer__timeout;
 const timer__startTimer = () => {
-  timer.remSeconds = timer.restartFlag ? timer.totalSeconds : timer.remSeconds;
-  let timeout = timer.remSeconds;
-  timer.restartFlag = false;
-  timer.runFlag = true;
+  if (timer.remSeconds <= 0) timer__initTimer();
+  else {
+    let timeout = timer.remSeconds;
+    timer__startBtn.disabled = true;
+    timer__stopBtn.disabled = false;
 
-  timer__interval = setInterval(() => {
-    timer.remSeconds -= 1;
-    timer__setTime(timer.remSeconds);
-  }, 1000);
+    timer__interval = setInterval(() => {
+      timer.runFlag = true;
+      timer.remSeconds -= 1;
+      timer__setTime(timer.remSeconds);
+    }, 1000);
 
-  timer__timeout = setTimeout(() => {
-    timer__initTimer();
-    timer__setTime(0);
-    timer__alert.play();
-  }, timeout * 1000);
-
-  timer__startBtn.disabled = true;
-  timer__stopBtn.disabled = false;
+    timer__timeout = setTimeout(() => {
+      console.log("timeout");
+      timer__initTimer();
+      timer__setTime(0);
+      timer__alert.play();
+    }, timeout * 1000);
+  }
 };
 timer__startBtn.addEventListener("click", timer__startTimer);
 
 const timer__initTimer = () => {
   clearInterval(timer__interval);
   clearTimeout(timer__timeout);
-  timer__startBtn.disabled = true;
-  timer__stopBtn.disabled = true;
   timer.runFlag = false;
 
-  // timer.restartFlag = true;
+  timer__startBtn.disabled = true;
+  timer__stopBtn.disabled = false;
 };
 
 //stop timer
 const timer__stopTimer = () => {
   timer__initTimer();
-  timer__setTime(timer.remSeconds);
-  timer.restartFlag = false;
   timer.runFlag = false;
   timer__startBtn.disabled = false;
   timer__stopBtn.disabled = true;
+  if (timer.remSeconds == 0) {
+    timer__alert.pause();
+    timer__startBtn.disabled = true;
+    timer.runFlag = false;
+  }
+  timer__setTime(timer.remSeconds);
 };
 timer__stopBtn.addEventListener("click", timer__stopTimer);
 
 //reset timer
 const timer__resetTimer = () => {
   timer__initTimer();
-  timer__setTime(timer.totalSeconds);
-  timer.restartFlag = true;
+  timer.remSeconds = timer.totalSeconds;
   timer.runFlag = false;
-  timer__alert.pause();
   timer__startBtn.disabled = false;
   timer__stopBtn.disabled = true;
+  timer__setTime(timer.totalSeconds);
 };
 timer__resetBtn.addEventListener("click", timer__resetTimer);
 
@@ -156,14 +158,16 @@ const timer__storeTimer = () => {
 const timer__reloadTimer = () => {
   const localTimer = JSON.parse(localStorage.getItem("timer"));
   Object.assign(timer, localTimer);
+  console.log(timer);
   if (timer.runFlag) {
     timer__startTimer();
+  } else {
     timer__startBtn.disabled = false;
     timer__stopBtn.disabled = true;
-  } else {
-    console.log("faaa");
-    timer__startBtn.disabled = true;
-    timer__stopBtn.disabled = false;
+    if (timer.remSeconds == 0) {
+      timer__resetTimer();
+      timer__startBtn.disabled = true;
+    }
   }
 };
 
